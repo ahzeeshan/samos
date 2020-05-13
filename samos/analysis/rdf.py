@@ -8,7 +8,8 @@ import itertools
 from abc import ABCMeta, abstractmethod
 
 
-class BaseAnalyzer(object, metaclass=ABCMeta):
+class BaseAnalyzer(object):
+    __metaclass__ = ABCMeta
     def __init__(self, **kwargs):
         for key, val in list(kwargs.items()):
             getattr(self, 'set_{}'.format(key))(val)
