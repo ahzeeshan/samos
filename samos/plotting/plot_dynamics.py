@@ -182,7 +182,7 @@ def plot_msd_anisotropic(msd,
 
 def plot_vaf_isotropic(vaf,
         ax=None, no_legend=False, species_of_interest=None, show=False,
-        color_scheme='jmol', **kwargs):
+        color_dict={}, color_scheme='jmol', **kwargs):
     from matplotlib.ticker import ScalarFormatter
     f = ScalarFormatter()
     f.set_powerlimits((-1,1))
@@ -221,7 +221,10 @@ def plot_vaf_isotropic(vaf,
         diff = attrs[atomic_species]['diffusion_mean_cm2_s']
         diff_sem = attrs[atomic_species]['diffusion_sem_cm2_s']
         diff_std = attrs[atomic_species]['diffusion_std_cm2_s']
-        color = get_color(atomic_species, scheme=color_scheme)
+        if atomic_species in color_dict:
+            color = color_dict[atomic_species]
+        else:
+            color = get_color(atomic_species, scheme=color_scheme)
         vaf_mean = vaf.get_array('vaf_isotropic_{}_mean'.format(atomic_species))
         vaf_sem = vaf.get_array('vaf_isotropic_{}_sem'.format(atomic_species))
         vaf_integral_mean = vaf.get_array('vaf_integral_isotropic_{}_mean'.format(atomic_species))
