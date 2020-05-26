@@ -94,6 +94,7 @@ class DynamicsAnalyzer(object):
         """
 
         species_of_interest = kwargs.pop("species_of_interest", self.get_species_of_interest())
+        inds_of_interest = kwargs.pop('inds_of_interest', 1)
 
         stepsize_t  = kwargs.pop('stepsize_t', 1)
         stepsize_tau  = kwargs.pop('stepsize_tau', 1)
@@ -212,7 +213,7 @@ class DynamicsAnalyzer(object):
         if kwargs:
             raise InputError("Uncrecognized keywords: {}".format(list(kwargs.keys())))
 
-        return (species_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt, nr_of_t,
+        return (species_of_interest, inds_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt, nr_of_t,
             stepsize_t, stepsize_tau, block_length_dt, do_com, do_long, t_long_end_dt, t_long_factor)
 
     def get_msd(self, decomposed=False, **kwargs):
@@ -243,7 +244,7 @@ class DynamicsAnalyzer(object):
             )
 
 
-        (species_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt,
+        (species_of_interest, inds_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt,
             nr_of_t, stepsize_t, stepsize_tau, block_length_dt, do_com, do_long, t_long_end_dt,
             t_long_factor) = self._get_running_params(timestep_fs, **kwargs)
 
@@ -262,7 +263,7 @@ class DynamicsAnalyzer(object):
         # Setting params for calculation of MSD and conductivity
         # Future: Maybe allow for element specific parameter settings?
 
-        for atomic_species in species_of_interest:
+        for atomic_species, atomic_species_inds in zip(species_of_interest, inds_of_interest):
             msd_this_species = [] # Here I collect the trajectories
             slopes = [] # That's where I collect slopes for the final estimate of diffusion
 
@@ -278,9 +279,15 @@ class DynamicsAnalyzer(object):
                     #~ nstep, nat, _ = positions.shape
                     positions = get_com_positions(positions, masses, factors)
                     indices_of_interest = [1]
-                    prefactor = len(trajectory.get_indices_of_species(atomic_species, start=0))
+                    #if atomic_species_inds is not None:
+                    prefactor = len(atomic_species_inds)
+                    #else:
+                    #    prefactor = len(trajectory.get_indices_of_species(atomic_species, start=0))
                 else:
-                    indices_of_interest = trajectory.get_indices_of_species(atomic_species, start=1)
+                    #if indices_of_interest is not None:
+                    indices_of_interest = atomic_species_inds + 1
+                    #else:
+                    #    indices_of_interest = trajectory.get_indices_of_species(atomic_species, start=1)
                     prefactor = 1
 
                 nstep, nat, _= positions.shape
@@ -431,7 +438,7 @@ class DynamicsAnalyzer(object):
                 "\n{}\n".format(e)
             )
 
-        (species_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt, nr_of_t,
+        (species_of_interest, inds_of_interest, nr_of_blocks, t_start_dt, t_end_dt, t_start_fit_dt, t_end_fit_dt, nr_of_t,
             stepsize_t, stepsize_tau, block_length_dt, do_com, do_long, t_long_end_dt,
             t_long_factor) = self._get_running_params(timestep_fs, **kwargs)
         if do_long:
@@ -443,7 +450,7 @@ class DynamicsAnalyzer(object):
         vaf_all_species = []
         range_for_t = timestep_fs*stepsize_t*np.arange(t_start_fit_dt//stepsize_t, t_end_fit_dt//stepsize_t)
 
-        for atomic_species in species_of_interest:
+        for atomic_species, atomic_species_inds in zip(species_of_interest, inds_of_interest):
 
 
 
@@ -460,9 +467,9 @@ class DynamicsAnalyzer(object):
                     #~ nstep, nat, _ = positions.shape
                     velocities = get_com_velocities(velocities, masses, factors)
                     indices_of_interest = [1]
-                    prefactor = len(trajectory.get_indices_of_species(atomic_species, start=0))
+                    prefactor = len(atomic_species_inds)
                 else:
-                    indices_of_interest = trajectory.get_indices_of_species(atomic_species, start=1)
+                    indices_of_interest = atomic_species_inds + 1
                     prefactor = 1
 
                 nstep, nat, _= velocities.shape
